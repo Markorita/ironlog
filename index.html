@@ -983,38 +983,63 @@ function setExFilter(ex){activeEx=ex;renderProgress();}
 })();
 </script>
 
-<button id="exportMenuBtn" style="position:fixed;top:12px;right:12px;z-index:9999;
-background:#111;border:1px solid #333;color:white;padding:6px 10px;
-border-radius:8px;font-size:18px">⋯</button>
-
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-const btn=document.getElementById("exportMenuBtn");
-if(btn){
-btn.addEventListener("click",()=>{
-const data=JSON.parse(localStorage.getItem("ironlog_v4")||"[]");
-
-if(!data.length){
-alert("No data to export");
-return;
+function safeParse(key){
+ try{
+   return JSON.parse(localStorage.getItem(key)||"[]")
+ }catch(e){
+   return []
+ }
 }
 
-const headers=Object.keys(data[0]);
-const csv=[headers.join(",")];
+const workouts = safeParse("ironlog_v4");
 
-data.forEach(r=>{
-csv.push(headers.map(h=>`"${(r[h]||"").toString().replace(/"/g,'""')}"`).join(","));
+/* --- Auto Exercise Registry --- */
+let exerciseRegistry = safeParse("ironlog_exercises");
+
+workouts.forEach(w=>{
+ if(w.exercise && !exerciseRegistry.includes(w.exercise)){
+   exerciseRegistry.push(w.exercise);
+ }
 });
 
-const blob=new Blob([csv.join("\n")],{type:"text/csv"});
+localStorage.setItem("ironlog_exercises", JSON.stringify(exerciseRegistry));
+
+/* --- Add Cardio Fields (non-breaking) --- */
+workouts.forEach(w=>{
+ if(!w.time) w.time="";
+ if(!w.calories) w.calories="";
+ if(!w.heartrate) w.heartrate="";
+});
+
+localStorage.setItem("ironlog_v4", JSON.stringify(workouts));
+
+/* --- Export Button --- */
+const btn = document.getElementById("exportMenuBtn");
+if(btn){
+btn.onclick=function(){
+
+const data = safeParse("ironlog_v4");
+if(!data.length){
+ alert("No data to export");
+ return;
+}
+
+const headers = Object.keys(data[0]);
+const rows = data.map(r=>headers.map(h=>`"${(r[h]||"").toString().replace(/"/g,'""')}"`).join(","));
+
+const csv=[headers.join(","),...rows].join("\n");
+
+const blob=new Blob([csv],{type:"text/csv"});
 const url=URL.createObjectURL(blob);
 
 const a=document.createElement("a");
 a.href=url;
 a.download="ironlog_export.csv";
 a.click();
-});
+};
 }
 
 });
