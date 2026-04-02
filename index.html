@@ -545,7 +545,7 @@ function groupedWcHtml(rows, showDel=false){
       <div class="wc-date">${fmtDate(w.date)}</div>
       ${showDel?`<button class="btn-del" style="margin-top:5px" onclick="deleteExerciseGroup('${w.date}','${w.exercise.replace(/'/g,"\\'")}')">✕</button>`:''}
     </div>
-  </div>\`;
+  </div>`;
 }
 
 // Legacy single-row display (fallback)
