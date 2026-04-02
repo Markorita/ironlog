@@ -7,49 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0b">
 <title>IRONLOG</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
-/* ===== V2 Enhancements ===== */
-
-// Add ellipsis export button
-function addExportButton(){
-  const btn=document.createElement('button');
-  btn.innerHTML='⋯';
-  btn.style.position='fixed';
-  btn.style.top='12px';
-  btn.style.right='12px';
-  btn.style.zIndex='1000';
-  btn.style.background='#111';
-  btn.style.color='#fff';
-  btn.style.border='1px solid #333';
-  btn.style.borderRadius='8px';
-  btn.style.padding='6px 10px';
-  btn.onclick=exportData;
-  document.body.appendChild(btn);
-}
-
-// Export CSV
-function exportData(){
-  const data=JSON.parse(localStorage.getItem('ironlog_v4')||'[]');
-  if(!data.length){alert('No data');return;}
-  const headers=Object.keys(data[0]);
-  const rows=data.map(o=>headers.map(h=>JSON.stringify(o[h]||'')).join(','));
-  const csv=[headers.join(','),...rows].join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='ironlog_export.csv';
-  a.click();
-}
-
-// extend init
-const originalInit=init;
-init=function(){
-  originalInit();
-  addExportButton();
-};
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1023,48 +981,44 @@ function setExFilter(ex){activeEx=ex;renderProgress();}
   document.getElementById('streak-val').textContent=calcStreak();
   renderDashboard();
 })();
-
-/* ===== V2 Enhancements ===== */
-
-// Add ellipsis export button
-function addExportButton(){
-  const btn=document.createElement('button');
-  btn.innerHTML='⋯';
-  btn.style.position='fixed';
-  btn.style.top='12px';
-  btn.style.right='12px';
-  btn.style.zIndex='1000';
-  btn.style.background='#111';
-  btn.style.color='#fff';
-  btn.style.border='1px solid #333';
-  btn.style.borderRadius='8px';
-  btn.style.padding='6px 10px';
-  btn.onclick=exportData;
-  document.body.appendChild(btn);
-}
-
-// Export CSV
-function exportData(){
-  const data=JSON.parse(localStorage.getItem('ironlog_v4')||'[]');
-  if(!data.length){alert('No data');return;}
-  const headers=Object.keys(data[0]);
-  const rows=data.map(o=>headers.map(h=>JSON.stringify(o[h]||'')).join(','));
-  const csv=[headers.join(','),...rows].join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='ironlog_export.csv';
-  a.click();
-}
-
-// extend init
-const originalInit=init;
-init=function(){
-  originalInit();
-  addExportButton();
-};
-
 </script>
+
+<button id="exportMenuBtn" style="position:fixed;top:12px;right:12px;z-index:9999;
+background:#111;border:1px solid #333;color:white;padding:6px 10px;
+border-radius:8px;font-size:18px">⋯</button>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+const btn=document.getElementById("exportMenuBtn");
+if(btn){
+btn.addEventListener("click",()=>{
+const data=JSON.parse(localStorage.getItem("ironlog_v4")||"[]");
+
+if(!data.length){
+alert("No data to export");
+return;
+}
+
+const headers=Object.keys(data[0]);
+const csv=[headers.join(",")];
+
+data.forEach(r=>{
+csv.push(headers.map(h=>`"${(r[h]||"").toString().replace(/"/g,'""')}"`).join(","));
+});
+
+const blob=new Blob([csv.join("\n")],{type:"text/csv"});
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+a.href=url;
+a.download="ironlog_export.csv";
+a.click();
+});
+}
+
+});
+</script>
+
 </body>
 </html>
