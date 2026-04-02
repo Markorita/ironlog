@@ -1045,5 +1045,72 @@ a.click();
 });
 </script>
 
+
+<script>
+(function(){
+try{
+
+document.addEventListener("DOMContentLoaded",function(){
+
+function safeParse(key){
+ try{return JSON.parse(localStorage.getItem(key)||"[]")}
+ catch(e){return []}
+}
+
+let workouts=safeParse("ironlog_v4")
+
+/* Ensure fields */
+workouts=workouts.map(w=>({
+ ...w,
+ time:w.time||"",
+ calories:w.calories||"",
+ heartrate:w.heartrate||""
+}))
+
+localStorage.setItem("ironlog_v4",JSON.stringify(workouts))
+
+/* Exercise registry */
+let ex=safeParse("ironlog_exercises")
+workouts.forEach(w=>{
+ if(w.exercise && !ex.includes(w.exercise)) ex.push(w.exercise)
+})
+localStorage.setItem("ironlog_exercises",JSON.stringify(ex))
+
+/* Export */
+const btn=document.getElementById("exportMenuBtn")
+if(btn){
+btn.onclick=function(){
+const data=safeParse("ironlog_v4")
+if(!data.length){alert("No data");return}
+
+const headers=Object.keys(data[0])
+const rows=data.map(r=>headers.map(h=>`"${(r[h]||"").toString().replace(/"/g,'""')}"`).join(","))
+const csv=[headers.join(","),...rows].join("\n")
+
+const blob=new Blob([csv],{type:"text/csv"})
+const url=URL.createObjectURL(blob)
+const a=document.createElement("a")
+a.href=url
+a.download="ironlog_export.csv"
+a.click()
+}
+}
+
+/* Force remove loading screen if stuck */
+setTimeout(function(){
+const loading=document.getElementById("loading-screen")
+const app=document.getElementById("app")
+if(loading) loading.style.display="none"
+if(app) app.style.display="flex"
+},1200)
+
+})
+
+}catch(e){
+console.error("V5 load error",e)
+}
+})();
+</script>
+
 </body>
 </html>
